@@ -1,0 +1,27 @@
+# Notas pessoais (não fazem parte da entrega)
+NOTAS.md
+
+# PHP / Composer
+/backend/vendor/
+/backend/.phpunit.result.cache
+/backend/.phpunit.cache/
+
+# Node / Next.js
+node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/.turbo/
+npm-debug.log*
+yarn-error.log*
+
+# Variáveis de ambiente (o exemplo .env.example fica versionado)
+.env
+.env.local
+.env.*.local
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
