@@ -1,6 +1,9 @@
 {
   "version": "1",
-  "name": "Ultralims - Amostras",
+  "name": "Desafio DEV - Ultralims - Amostras",
   "type": "collection",
-  "ignore": ["node_modules", ".git"]
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
 }
