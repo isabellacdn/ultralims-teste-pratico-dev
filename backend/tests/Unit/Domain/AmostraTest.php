@@ -8,80 +8,69 @@ use App\Domain\Entity\Amostra;
 use App\Domain\Enum\StatusAmostra;
 use App\Domain\Enum\TipoAmostra;
 use App\Domain\Exception\DataConclusaoInvalidaException;
+use App\Domain\Exception\RegraDeNegocioException;
 use App\Domain\Exception\ResponsavelTecnicoObrigatorioException;
 use App\Domain\Exception\TransicaoInvalidaException;
 use App\Domain\ValueObject\CodigoAmostra;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Testes das regras de negocio da secao 2.2 do enunciado.
- *
- * Repare: nenhum teste aqui usa banco de dados, servidor HTTP ou mock. Sao
- * regras de dominio puro — e por isso rodam em milissegundos.
- */
+#[CoversClass(Amostra::class)]
 final class AmostraTest extends TestCase
 {
     private const RECEBIMENTO = '2026-08-10';
 
-    // ---------------------------------------------------------------------
-    // Regra 1 — toda amostra e criada com status Recebida
-    // ---------------------------------------------------------------------
-
-    public function test_amostra_nasce_com_status_recebida(): void
+    public function testShouldCreateSampleWithReceivedStatus(): void
     {
-        $amostra = $this->amostraNova();
+        $amostra = $this->newSample();
 
         self::assertSame(StatusAmostra::Recebida, $amostra->status());
         self::assertNull($amostra->dataConclusao());
         self::assertNull($amostra->id());
     }
 
-    public function test_responsavel_tecnico_e_opcional_na_criacao(): void
+    public function testShouldAllowCreationWithoutTechnician(): void
     {
-        self::assertNull($this->amostraNova()->responsavelTecnico());
-        self::assertSame('Ana Souza', $this->amostraNova('Ana Souza')->responsavelTecnico());
+        self::assertNull($this->newSample()->responsavelTecnico());
     }
 
-    // ---------------------------------------------------------------------
-    // Regra 2 — so vai para EmAnalise com responsavel tecnico preenchido
-    // ---------------------------------------------------------------------
-
-    public function test_nao_inicia_analise_sem_responsavel_tecnico(): void
+    public function testShouldKeepTechnicianProvidedAtCreation(): void
     {
-        $amostra = $this->amostraNova();
+        self::assertSame('Ana Souza', $this->newSample('Ana Souza')->responsavelTecnico());
+    }
+
+    public function testShouldRejectAnalysisStartWithoutTechnician(): void
+    {
+        $amostra = $this->newSample();
 
         $this->expectException(ResponsavelTecnicoObrigatorioException::class);
 
         $amostra->transicionarPara(StatusAmostra::EmAnalise);
     }
 
-    public function test_status_nao_muda_quando_a_transicao_e_recusada(): void
+    public function testShouldKeepStatusUnchangedWhenTransitionIsRejected(): void
     {
-        $amostra = $this->amostraNova();
+        $amostra = $this->newSample();
 
-        try {
-            $amostra->transicionarPara(StatusAmostra::EmAnalise);
-        } catch (ResponsavelTecnicoObrigatorioException) {
-            // esperado
-        }
+        $this->attemptRejectedTransition($amostra, StatusAmostra::EmAnalise);
 
         self::assertSame(StatusAmostra::Recebida, $amostra->status());
     }
 
-    public function test_inicia_analise_com_responsavel_tecnico_informado_na_criacao(): void
+    public function testShouldStartAnalysisWhenTechnicianProvidedAtCreation(): void
     {
-        $amostra = $this->amostraNova('Ana Souza');
+        $amostra = $this->newSample('Ana Souza');
 
         $amostra->transicionarPara(StatusAmostra::EmAnalise);
 
         self::assertSame(StatusAmostra::EmAnalise, $amostra->status());
     }
 
-    public function test_inicia_analise_apos_definir_o_responsavel_tecnico(): void
+    public function testShouldStartAnalysisAfterAssigningTechnician(): void
     {
-        $amostra = $this->amostraNova();
+        $amostra = $this->newSample();
 
         $amostra->definirResponsavelTecnico('Bruno Lima');
         $amostra->transicionarPara(StatusAmostra::EmAnalise);
@@ -90,49 +79,45 @@ final class AmostraTest extends TestCase
         self::assertSame('Bruno Lima', $amostra->responsavelTecnico());
     }
 
-    public function test_responsavel_tecnico_so_com_espacos_e_recusado(): void
+    public function testShouldRejectBlankTechnicianName(): void
     {
-        $amostra = $this->amostraNova();
+        $amostra = $this->newSample();
 
         $this->expectException(ResponsavelTecnicoObrigatorioException::class);
 
         $amostra->definirResponsavelTecnico('   ');
     }
 
-    // ---------------------------------------------------------------------
-    // Regra 3 — Concluida exige EmAnalise + data de conclusao >= recebimento
-    // ---------------------------------------------------------------------
-
-    public function test_nao_conclui_direto_a_partir_de_recebida(): void
+    public function testShouldRejectCompletionDirectlyFromReceived(): void
     {
-        $amostra = $this->amostraNova('Ana Souza');
+        $amostra = $this->newSample('Ana Souza');
 
         $this->expectException(TransicaoInvalidaException::class);
 
         $amostra->transicionarPara(StatusAmostra::Concluida, new DateTimeImmutable('2026-08-15'));
     }
 
-    public function test_nao_conclui_sem_data_de_conclusao(): void
+    public function testShouldRejectCompletionWithoutCompletionDate(): void
     {
-        $amostra = $this->amostraEmAnalise();
+        $amostra = $this->sampleUnderAnalysis();
 
         $this->expectException(DataConclusaoInvalidaException::class);
 
         $amostra->transicionarPara(StatusAmostra::Concluida);
     }
 
-    public function test_nao_conclui_com_data_anterior_ao_recebimento(): void
+    public function testShouldRejectCompletionDateBeforeReceiptDate(): void
     {
-        $amostra = $this->amostraEmAnalise();
+        $amostra = $this->sampleUnderAnalysis();
 
         $this->expectException(DataConclusaoInvalidaException::class);
 
         $amostra->transicionarPara(StatusAmostra::Concluida, new DateTimeImmutable('2026-08-09'));
     }
 
-    public function test_conclui_com_data_igual_a_de_recebimento(): void
+    public function testShouldAcceptCompletionDateEqualToReceiptDate(): void
     {
-        $amostra = $this->amostraEmAnalise();
+        $amostra = $this->sampleUnderAnalysis();
 
         $amostra->transicionarPara(StatusAmostra::Concluida, new DateTimeImmutable(self::RECEBIMENTO));
 
@@ -140,9 +125,9 @@ final class AmostraTest extends TestCase
         self::assertSame(self::RECEBIMENTO, $amostra->dataConclusao()?->format('Y-m-d'));
     }
 
-    public function test_conclui_com_data_posterior_a_de_recebimento(): void
+    public function testShouldAcceptCompletionDateAfterReceiptDate(): void
     {
-        $amostra = $this->amostraEmAnalise();
+        $amostra = $this->sampleUnderAnalysis();
 
         $amostra->transicionarPara(StatusAmostra::Concluida, new DateTimeImmutable('2026-08-15'));
 
@@ -150,85 +135,79 @@ final class AmostraTest extends TestCase
         self::assertSame('2026-08-15', $amostra->dataConclusao()?->format('Y-m-d'));
     }
 
-    // ---------------------------------------------------------------------
-    // Regra 4 — Rejeitada a partir de Recebida ou EmAnalise, nunca de Concluida
-    // ---------------------------------------------------------------------
-
-    public function test_rejeita_a_partir_de_recebida(): void
+    public function testShouldRejectSampleFromReceived(): void
     {
-        $amostra = $this->amostraNova();
+        $amostra = $this->newSample();
 
         $amostra->transicionarPara(StatusAmostra::Rejeitada);
 
         self::assertSame(StatusAmostra::Rejeitada, $amostra->status());
     }
 
-    public function test_rejeita_a_partir_de_em_analise(): void
+    public function testShouldRejectSampleFromUnderAnalysis(): void
     {
-        $amostra = $this->amostraEmAnalise();
+        $amostra = $this->sampleUnderAnalysis();
 
         $amostra->transicionarPara(StatusAmostra::Rejeitada);
 
         self::assertSame(StatusAmostra::Rejeitada, $amostra->status());
     }
 
-    public function test_nao_rejeita_a_partir_de_concluida(): void
+    public function testShouldNotRejectSampleAlreadyCompleted(): void
     {
-        $amostra = $this->amostraConcluida();
+        $amostra = $this->completedSample();
 
         $this->expectException(TransicaoInvalidaException::class);
 
         $amostra->transicionarPara(StatusAmostra::Rejeitada);
     }
 
-    // ---------------------------------------------------------------------
-    // Regra 5 — Concluida e Rejeitada sao estados finais
-    // ---------------------------------------------------------------------
-
-    #[DataProvider('todosOsStatus')]
-    public function test_amostra_concluida_nao_aceita_nenhuma_transicao(StatusAmostra $destino): void
+    #[DataProvider('allStatuses')]
+    public function testShouldBlockAnyTransitionFromCompletedSample(StatusAmostra $destino): void
     {
-        $amostra = $this->amostraConcluida();
+        $amostra = $this->completedSample();
 
         $this->expectException(TransicaoInvalidaException::class);
 
         $amostra->transicionarPara($destino, new DateTimeImmutable('2026-08-20'));
     }
 
-    #[DataProvider('todosOsStatus')]
-    public function test_amostra_rejeitada_nao_aceita_nenhuma_transicao(StatusAmostra $destino): void
+    #[DataProvider('allStatuses')]
+    public function testShouldBlockAnyTransitionFromRejectedSample(StatusAmostra $destino): void
     {
-        $amostra = $this->amostraRejeitada();
+        $amostra = $this->rejectedSample();
 
         $this->expectException(TransicaoInvalidaException::class);
 
         $amostra->transicionarPara($destino, new DateTimeImmutable('2026-08-20'));
     }
 
-    public function test_amostra_finalizada_nao_aceita_troca_de_responsavel_tecnico(): void
+    public function testShouldBlockTechnicianChangeOnFinalizedSample(): void
     {
-        $amostra = $this->amostraConcluida();
+        $amostra = $this->completedSample();
 
         $this->expectException(TransicaoInvalidaException::class);
 
         $amostra->definirResponsavelTecnico('Carla Dias');
     }
 
-    /**
-     * @return iterable<string, array{StatusAmostra}>
-     */
-    public static function todosOsStatus(): iterable
+    public static function allStatuses(): iterable
     {
         foreach (StatusAmostra::cases() as $status) {
             yield $status->value => [$status];
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Auxiliares — deixam cada teste focado no que ele realmente verifica
-    // ---------------------------------------------------------------------
+    private function attemptRejectedTransition(Amostra $amostra, StatusAmostra $destino): void
+    {
+        try {
+            $amostra->transicionarPara($destino);
+            self::fail('A transicao deveria ter sido recusada.');
+        } catch (RegraDeNegocioException) {
+        }
+    }
 
-    private function amostraNova(?string $responsavelTecnico = null): Amostra
+    private function newSample(?string $responsavelTecnico = null): Amostra
     {
         return Amostra::criar(
             CodigoAmostra::gerar('ISABELLA', 2026, 1),
@@ -238,25 +217,25 @@ final class AmostraTest extends TestCase
         );
     }
 
-    private function amostraEmAnalise(): Amostra
+    private function sampleUnderAnalysis(): Amostra
     {
-        $amostra = $this->amostraNova('Ana Souza');
+        $amostra = $this->newSample('Ana Souza');
         $amostra->transicionarPara(StatusAmostra::EmAnalise);
 
         return $amostra;
     }
 
-    private function amostraConcluida(): Amostra
+    private function completedSample(): Amostra
     {
-        $amostra = $this->amostraEmAnalise();
+        $amostra = $this->sampleUnderAnalysis();
         $amostra->transicionarPara(StatusAmostra::Concluida, new DateTimeImmutable('2026-08-15'));
 
         return $amostra;
     }
 
-    private function amostraRejeitada(): Amostra
+    private function rejectedSample(): Amostra
     {
-        $amostra = $this->amostraNova();
+        $amostra = $this->newSample();
         $amostra->transicionarPara(StatusAmostra::Rejeitada);
 
         return $amostra;
