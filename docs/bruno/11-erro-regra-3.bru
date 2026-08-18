@@ -1,0 +1,18 @@
+meta {
+  name: Erro 422 - conclusao anterior ao recebimento
+  type: http
+  seq: 11
+}
+
+patch {
+  url: {{base_url}}/amostras/{{amostra_id}}/status
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "status": "Concluida",
+    "data_conclusao": "2026-01-01"
+  }
+}

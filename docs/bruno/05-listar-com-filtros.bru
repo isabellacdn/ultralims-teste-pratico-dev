@@ -1,0 +1,16 @@
+meta {
+  name: Listar com filtros
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base_url}}/amostras?status=Recebida&tipo=Agua
+  body: none
+  auth: none
+}
+
+params:query {
+  status: Recebida
+  tipo: Agua
+}

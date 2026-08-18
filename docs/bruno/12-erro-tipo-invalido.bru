@@ -1,0 +1,18 @@
+meta {
+  name: Erro 400 - tipo invalido
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{base_url}}/amostras
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "tipo": "Fogo",
+    "data_recebimento": "2026-08-10"
+  }
+}

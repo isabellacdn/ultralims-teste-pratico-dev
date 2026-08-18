@@ -1,0 +1,17 @@
+meta {
+  name: Erro 422 - analise sem responsavel
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{base_url}}/amostras/{{amostra_id}}/status
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "status": "EmAnalise"
+  }
+}

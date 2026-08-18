@@ -1,0 +1,19 @@
+meta {
+  name: Cadastrar amostra com responsavel
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/amostras
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "tipo": "Solo",
+    "data_recebimento": "2026-08-10",
+    "responsavel_tecnico": "Ana Souza"
+  }
+}

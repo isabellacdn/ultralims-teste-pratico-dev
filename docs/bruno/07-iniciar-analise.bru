@@ -1,0 +1,18 @@
+meta {
+  name: Transicionar para EmAnalise
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{base_url}}/amostras/{{amostra_id}}/status
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "status": "EmAnalise",
+    "responsavel_tecnico": "Bruno Lima"
+  }
+}

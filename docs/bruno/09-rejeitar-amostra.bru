@@ -1,0 +1,17 @@
+meta {
+  name: Transicionar para Rejeitada
+  type: http
+  seq: 9
+}
+
+patch {
+  url: {{base_url}}/amostras/{{amostra_id}}/status
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "status": "Rejeitada"
+  }
+}
