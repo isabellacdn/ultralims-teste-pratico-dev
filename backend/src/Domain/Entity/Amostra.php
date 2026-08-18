@@ -12,17 +12,6 @@ use App\Domain\Exception\TransicaoInvalidaException;
 use App\Domain\ValueObject\CodigoAmostra;
 use DateTimeImmutable;
 
-/**
- * A amostra do laboratorio.
- *
- * Esta classe e a dona das regras de negocio da secao 2.2 do enunciado. Ela nao
- * conhece banco de dados nem HTTP: e PHP puro. Por isso da para testar as regras
- * sem subir nada.
- *
- * O construtor e privado de proposito. Para nascer, uma amostra passa
- * obrigatoriamente por criar() (amostra nova) ou restaurar() (amostra que veio
- * do banco). Assim nao existe amostra em estado invalido no sistema.
- */
 final class Amostra
 {
     private function __construct(
@@ -36,9 +25,6 @@ final class Amostra
     ) {
     }
 
-    /**
-     * Regra 1: toda amostra e criada com status Recebida.
-     */
     public static function criar(
         CodigoAmostra $codigo,
         TipoAmostra $tipo,
@@ -56,11 +42,6 @@ final class Amostra
         );
     }
 
-    /**
-     * Reconstroi uma amostra que ja existe (usado pelo repositorio ao ler do banco).
-     * Aqui nao ha validacao de transicao: o estado ja aconteceu, so estamos
-     * trazendo ele de volta para a memoria.
-     */
     public static function restaurar(
         int $id,
         CodigoAmostra $codigo,
@@ -81,9 +62,6 @@ final class Amostra
         );
     }
 
-    /**
-     * Unico caminho para mudar o status. Todas as regras passam por aqui.
-     */
     public function transicionarPara(StatusAmostra $novoStatus, ?DateTimeImmutable $dataConclusao = null): void
     {
         $this->garantirQueNaoEstaFinalizada();
@@ -108,9 +86,6 @@ final class Amostra
         $this->responsavelTecnico = self::normalizarResponsavel($nome);
     }
 
-    /**
-     * Chamado pelo repositorio depois do INSERT, quando o banco devolve o id.
-     */
     public function definirId(int $id): void
     {
         if ($this->id !== null) {
@@ -155,9 +130,6 @@ final class Amostra
         return $this->dataConclusao;
     }
 
-    /**
-     * Regra 5: Concluida e Rejeitada sao estados finais.
-     */
     private function garantirQueNaoEstaFinalizada(): void
     {
         if ($this->status->ehFinal()) {
@@ -165,9 +137,6 @@ final class Amostra
         }
     }
 
-    /**
-     * Regra 2: so vai para EmAnalise com responsavel tecnico preenchido.
-     */
     private function garantirResponsavelTecnicoPreenchido(): void
     {
         if ($this->responsavelTecnico === null) {
@@ -175,18 +144,12 @@ final class Amostra
         }
     }
 
-    /**
-     * Regra 3: para concluir e preciso data de conclusao, e ela nao pode ser
-     * anterior a data de recebimento. (A exigencia de estar em EmAnalise ja foi
-     * garantida pelo mapa de transicoes do enum.)
-     */
     private function registrarConclusao(?DateTimeImmutable $dataConclusao): void
     {
         if ($dataConclusao === null) {
             throw DataConclusaoInvalidaException::obrigatoria();
         }
 
-        // Comparamos so a parte da data: o enunciado fala em datas, nao em horarios.
         if ($dataConclusao->format('Y-m-d') < $this->dataRecebimento->format('Y-m-d')) {
             throw DataConclusaoInvalidaException::anteriorAoRecebimento();
         }

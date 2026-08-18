@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Exception;
 
-/**
- * Regra 3: para concluir, a data de conclusao e obrigatoria e nao pode ser
- * anterior a data de recebimento.
- */
 final class DataConclusaoInvalidaException extends RegraDeNegocioException
 {
     public static function obrigatoria(): self

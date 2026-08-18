@@ -17,9 +17,6 @@ final class TransicaoInvalidaException extends RegraDeNegocioException
         ));
     }
 
-    /**
-     * Regra 5: estados finais nao podem mais ser alterados.
-     */
     public static function amostraJaFinalizada(StatusAmostra $atual): self
     {
         return new self(sprintf(

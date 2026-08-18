@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Exception;
 
-/**
- * Regra 2: so da pra ir para EmAnalise com responsavel tecnico preenchido.
- */
 final class ResponsavelTecnicoObrigatorioException extends RegraDeNegocioException
 {
     public static function paraIniciarAnalise(): self

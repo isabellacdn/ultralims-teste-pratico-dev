@@ -10,10 +10,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
 
-// Le o corpo JSON das requisicoes e entrega ja como array em $request->getParsedBody()
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
-// (exibirErros, logarErros, logarDetalhes) — o primeiro true e so para desenvolvimento
 $app->addErrorMiddleware(true, true, true);
 
 $app->get('/health', function (Request $request, Response $response): Response {
