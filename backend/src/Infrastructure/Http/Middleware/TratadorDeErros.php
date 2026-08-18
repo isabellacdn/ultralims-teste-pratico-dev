@@ -11,6 +11,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Exception\HttpMethodNotAllowedException;
+use Slim\Exception\HttpNotFoundException;
 use Slim\Psr7\Response;
 use Throwable;
 
@@ -26,6 +28,14 @@ final readonly class TratadorDeErros implements MiddlewareInterface
             return $handler->handle($request);
         } catch (AmostraNaoEncontradaException $erro) {
             return Respostas::erro(new Response(), $erro->getMessage(), 404);
+        } catch (HttpNotFoundException) {
+            return Respostas::erro(new Response(), 'Rota nao encontrada.', 404);
+        } catch (HttpMethodNotAllowedException $erro) {
+            return Respostas::erro(
+                new Response(),
+                sprintf('Metodo nao permitido. Use: %s.', implode(', ', $erro->getAllowedMethods())),
+                405,
+            );
         } catch (RegraDeNegocioException $erro) {
             return Respostas::erro(new Response(), $erro->getMessage(), 422);
         } catch (RequisicaoInvalidaException $erro) {
