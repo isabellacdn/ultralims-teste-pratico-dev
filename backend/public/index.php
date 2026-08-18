@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Infrastructure\Config\Ambiente;
 use App\Infrastructure\Config\Container;
 use App\Infrastructure\Http\Controller\AmostraController;
+use App\Infrastructure\Http\Middleware\Cors;
 use App\Infrastructure\Http\Middleware\TratadorDeErros;
 use App\Infrastructure\Http\Respostas;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -21,6 +22,7 @@ $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
 $app->add(new TratadorDeErros(Ambiente::booleano('APP_DEBUG', false)));
+$app->add(Cors::deLista(Ambiente::texto('CORS_ORIGENS_PERMITIDAS', 'http://localhost:3001')));
 
 $app->get('/health', fn (Request $requisicao, Response $resposta): Response =>
     Respostas::json($resposta, ['status' => 'ok']));
