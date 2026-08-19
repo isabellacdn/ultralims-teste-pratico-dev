@@ -24,3 +24,116 @@ h1 {
   font-size: 1.5rem;
   margin: 0 0 1.5rem;
 }
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+select,
+input {
+  padding: 0.4rem 0.5rem;
+  font: inherit;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: #fff;
+}
+
+button {
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #eee;
+}
+
+button:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+th {
+  background: #f0f0f0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid currentColor;
+}
+
+.status-recebida {
+  color: #1d4ed8;
+}
+
+.status-emanalise {
+  color: #b45309;
+}
+
+.status-concluida {
+  color: #15803d;
+}
+
+.status-rejeitada {
+  color: #b91c1c;
+}
+
+.aviso {
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #555;
+}
+
+.aviso.erro {
+  border-color: #b91c1c;
+  background: #fef2f2;
+  color: #b91c1c;
+}
