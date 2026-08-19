@@ -22,6 +22,20 @@ Cada peça sobe sozinha e pode estar no ar sem as outras. Frontend ligado com a 
 desligada mostra o aviso "Não foi possível falar com a API" — não é defeito da tela, é a
 API fora do ar.
 
+## Preparação (uma única vez)
+
+Os testes de integração usam um banco separado, `ultralims_teste`. Com o container do MySQL
+no ar, criar o banco e aplicar o schema nele:
+
+```bash
+docker exec ultralims-mysql mysql -uroot -proot \
+  -e "CREATE DATABASE IF NOT EXISTS ultralims_teste CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; \
+      GRANT ALL PRIVILEGES ON ultralims_teste.* TO 'ultralims'@'%'; FLUSH PRIVILEGES;"
+
+docker exec -i ultralims-mysql mysql -uultralims -pultralims ultralims_teste \
+  < backend/database/schema.sql
+```
+
 ## Parte A — Ligar tudo
 
 Use uma aba de terminal para cada serviço. As abas dos serviços ficam ocupadas: é o
@@ -83,15 +97,17 @@ lista de requisitos verificados. No fim vem o resumo: `OK (N tests, N assertions
 - `OK` — tudo passou.
 - `FAILURES!` — o relatório aponta o teste, o valor esperado e o obtido.
 
-Os testes unitários cobrem as regras de negócio e rodam sem banco nem servidor.
+A suíte `Unit` cobre as regras de negócio e roda sem banco nem servidor. A suíte
+`Integration` precisa do MySQL no ar e limpa a tabela `amostras` antes de cada teste, para
+partir sempre de um estado conhecido — por isso ela aponta para o banco `ultralims_teste`,
+definido em `phpunit.xml`, e nunca toca nos dados de desenvolvimento.
 
-> **Atenção:** a suíte `Integration` executa `DELETE FROM amostras` antes de cada teste, no
-> mesmo banco usado pela aplicação. Rodar a suíte completa **apaga as amostras cadastradas**
-> e deixa no lugar as três criadas pelo próprio teste. Para rodar sem tocar nos dados:
->
-> ```bash
-> ./vendor/bin/phpunit --testsuite Unit --testdox
-> ```
+Para rodar apenas uma das suítes:
+
+```bash
+./vendor/bin/phpunit --testsuite Unit --testdox
+./vendor/bin/phpunit --testsuite Integration --testdox
+```
 
 Rodar depois de qualquer alteração no backend.
 
@@ -187,7 +203,8 @@ usuário brasileiro vê.
 **Porta ocupada ao subir a API.** Uma instância anterior continua no ar; ver o passo A2.
 
 **As amostras sumiram depois de rodar os testes.** A suíte `Integration` limpa a tabela
-`amostras` a cada teste; ver a nota da Parte B.
+antes de cada teste. Ela só deve fazer isso em `ultralims_teste`: conferir se o bloco
+`<php><env name="DB_DATABASE" .../></php>` continua no `phpunit.xml`.
 
 **Tela não mostra o que foi cadastrado pelo Bruno.** A listagem está em cache no cliente:
 recarregar a página ou trocar um filtro.
