@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { transicionarStatus } from "@/lib/api";
 import {
+  ROTULOS_DE_STATUS,
   STATUS_DE_AMOSTRA,
   type Amostra,
   type StatusAmostra,
@@ -52,7 +53,7 @@ export function AcaoDeStatus({ amostra, aoFechar }: Props) {
           {STATUS_DE_AMOSTRA.filter((status) => status !== amostra.status).map(
             (status) => (
               <option key={status} value={status}>
-                {status}
+                {ROTULOS_DE_STATUS[status]}
               </option>
             ),
           )}

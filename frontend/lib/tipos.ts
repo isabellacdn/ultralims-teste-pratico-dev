@@ -11,6 +11,20 @@ export const STATUS_DE_AMOSTRA = [
 
 export type StatusAmostra = (typeof STATUS_DE_AMOSTRA)[number];
 
+export const ROTULOS_DE_TIPO: Record<TipoAmostra, string> = {
+  Agua: "Água",
+  Solo: "Solo",
+  Ar: "Ar",
+  Efluente: "Efluente",
+};
+
+export const ROTULOS_DE_STATUS: Record<StatusAmostra, string> = {
+  Recebida: "Recebida",
+  EmAnalise: "Em análise",
+  Concluida: "Concluída",
+  Rejeitada: "Rejeitada",
+};
+
 export type Amostra = {
   id: number;
   codigo: string;

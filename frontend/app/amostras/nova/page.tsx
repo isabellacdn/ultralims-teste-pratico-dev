@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { cadastrarAmostra } from "@/lib/api";
-import { TIPOS_DE_AMOSTRA, type TipoAmostra } from "@/lib/tipos";
+import {
+  ROTULOS_DE_TIPO,
+  TIPOS_DE_AMOSTRA,
+  type TipoAmostra,
+} from "@/lib/tipos";
 
 export default function PaginaDeCadastro() {
   const router = useRouter();
@@ -53,7 +57,7 @@ export default function PaginaDeCadastro() {
             <option value="">Selecione</option>
             {TIPOS_DE_AMOSTRA.map((tipoDisponivel) => (
               <option key={tipoDisponivel} value={tipoDisponivel}>
-                {tipoDisponivel}
+                {ROTULOS_DE_TIPO[tipoDisponivel]}
               </option>
             ))}
           </select>

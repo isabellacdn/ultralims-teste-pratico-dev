@@ -2,7 +2,11 @@
 
 import { Fragment, useState } from "react";
 import { AcaoDeStatus } from "./AcaoDeStatus";
-import type { Amostra } from "@/lib/tipos";
+import {
+  ROTULOS_DE_STATUS,
+  ROTULOS_DE_TIPO,
+  type Amostra,
+} from "@/lib/tipos";
 
 type Props = {
   amostras: Amostra[];
@@ -31,12 +35,12 @@ export function TabelaDeAmostras({ amostras }: Props) {
           <Fragment key={amostra.id}>
             <tr>
               <td>{amostra.codigo}</td>
-              <td>{amostra.tipo}</td>
+              <td>{ROTULOS_DE_TIPO[amostra.tipo]}</td>
               <td>
                 <span
                   className={`status status-${amostra.status.toLowerCase()}`}
                 >
-                  {amostra.status}
+                  {ROTULOS_DE_STATUS[amostra.status]}
                 </span>
               </td>
               <td>{amostra.responsavel_tecnico ?? "—"}</td>

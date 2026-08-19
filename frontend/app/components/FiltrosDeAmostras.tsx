@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ROTULOS_DE_STATUS,
+  ROTULOS_DE_TIPO,
   STATUS_DE_AMOSTRA,
   TIPOS_DE_AMOSTRA,
   type FiltrosDeAmostra,
@@ -30,7 +32,7 @@ export function FiltrosDeAmostras({ filtros, aoMudar }: Props) {
           <option value="">Todos</option>
           {STATUS_DE_AMOSTRA.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {ROTULOS_DE_STATUS[status]}
             </option>
           ))}
         </select>
@@ -50,7 +52,7 @@ export function FiltrosDeAmostras({ filtros, aoMudar }: Props) {
           <option value="">Todos</option>
           {TIPOS_DE_AMOSTRA.map((tipo) => (
             <option key={tipo} value={tipo}>
-              {tipo}
+              {ROTULOS_DE_TIPO[tipo]}
             </option>
           ))}
         </select>
