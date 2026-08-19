@@ -88,7 +88,7 @@ export default function PaginaDeCadastro() {
         )}
 
         <div className="acoes">
-          <button type="submit" disabled={cadastro.isPending}>
+          <button type="submit" className="principal" disabled={cadastro.isPending}>
             {cadastro.isPending ? "Cadastrando..." : "Cadastrar amostra"}
           </button>
           <Link href="/">Cancelar</Link>

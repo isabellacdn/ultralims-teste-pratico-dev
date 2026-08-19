@@ -86,6 +86,7 @@ export function AcaoDeStatus({ amostra, aoFechar }: Props) {
       <div className="acoes">
         <button
           type="button"
+          className="principal"
           onClick={() => destino !== "" && transicao.mutate(destino)}
           disabled={destino === "" || transicao.isPending}
         >
