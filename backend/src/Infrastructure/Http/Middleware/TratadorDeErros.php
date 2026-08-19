@@ -29,11 +29,11 @@ final readonly class TratadorDeErros implements MiddlewareInterface
         } catch (AmostraNaoEncontradaException $erro) {
             return Respostas::erro(new Response(), $erro->getMessage(), 404);
         } catch (HttpNotFoundException) {
-            return Respostas::erro(new Response(), 'Rota nao encontrada.', 404);
+            return Respostas::erro(new Response(), 'Rota não encontrada.', 404);
         } catch (HttpMethodNotAllowedException $erro) {
             return Respostas::erro(
                 new Response(),
-                sprintf('Metodo nao permitido. Use: %s.', implode(', ', $erro->getAllowedMethods())),
+                sprintf('Método não permitido. Use: %s.', implode(', ', $erro->getAllowedMethods())),
                 405,
             );
         } catch (RegraDeNegocioException $erro) {

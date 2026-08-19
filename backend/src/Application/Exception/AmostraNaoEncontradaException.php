@@ -10,6 +10,6 @@ final class AmostraNaoEncontradaException extends RuntimeException
 {
     public static function comId(int $id): self
     {
-        return new self(sprintf('Amostra %d nao encontrada.', $id));
+        return new self(sprintf('Amostra %d não encontrada.', $id));
     }
 }

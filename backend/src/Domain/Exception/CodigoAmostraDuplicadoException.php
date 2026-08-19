@@ -10,6 +10,6 @@ final class CodigoAmostraDuplicadoException extends RuntimeException
 {
     public static function de(string $codigo): self
     {
-        return new self(sprintf('Ja existe uma amostra com o codigo %s.', $codigo));
+        return new self(sprintf('Já existe uma amostra com o código %s.', $codigo));
     }
 }

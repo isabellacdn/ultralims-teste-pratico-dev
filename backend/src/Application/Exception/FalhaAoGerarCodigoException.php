@@ -11,7 +11,7 @@ final class FalhaAoGerarCodigoException extends RuntimeException
     public static function aposTentativas(int $tentativas): self
     {
         return new self(sprintf(
-            'Nao foi possivel gerar um codigo unico para a amostra apos %d tentativas.',
+            'Não foi possível gerar um código único para a amostra após %d tentativas.',
             $tentativas
         ));
     }

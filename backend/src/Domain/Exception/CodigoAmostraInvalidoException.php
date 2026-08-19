@@ -9,7 +9,7 @@ final class CodigoAmostraInvalidoException extends RegraDeNegocioException
     public static function formato(string $valor): self
     {
         return new self(sprintf(
-            'Codigo de amostra invalido: "%s". O formato esperado e {PREFIXO}-{ANO}-{SEQUENCIAL}, por exemplo ISABELLA-2026-0001.',
+            'Código de amostra inválido: "%s". O formato esperado é {PREFIXO}-{ANO}-{SEQUENCIAL}, por exemplo ISABELLA-2026-0001.',
             $valor
         ));
     }

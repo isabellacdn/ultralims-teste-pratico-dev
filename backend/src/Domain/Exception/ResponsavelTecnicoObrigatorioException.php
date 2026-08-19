@@ -8,11 +8,11 @@ final class ResponsavelTecnicoObrigatorioException extends RegraDeNegocioExcepti
 {
     public static function paraIniciarAnalise(): self
     {
-        return new self('E necessario informar o responsavel tecnico para colocar a amostra em analise.');
+        return new self('É necessário informar o responsável técnico para colocar a amostra em análise.');
     }
 
     public static function nomeVazio(): self
     {
-        return new self('O nome do responsavel tecnico nao pode ser vazio.');
+        return new self('O nome do responsável técnico não pode ser vazio.');
     }
 }
