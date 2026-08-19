@@ -35,7 +35,7 @@ export function TabelaDeAmostras({ amostras }: Props) {
           {amostras.map((amostra) => (
             <Fragment key={amostra.id}>
               <tr>
-                <td>{amostra.codigo}</td>
+                <td className="codigo">{amostra.codigo}</td>
                 <td>{ROTULOS_DE_TIPO[amostra.tipo]}</td>
                 <td>
                   <span
@@ -45,14 +45,15 @@ export function TabelaDeAmostras({ amostras }: Props) {
                   </span>
                 </td>
                 <td>{amostra.responsavel_tecnico ?? "—"}</td>
-                <td>{formatarData(amostra.data_recebimento)}</td>
-                <td>{formatarData(amostra.data_conclusao)}</td>
+                <td className="data">{formatarData(amostra.data_recebimento)}</td>
+                <td className="data">{formatarData(amostra.data_conclusao)}</td>
                 <td>
                   {STATUS_FINAIS.includes(amostra.status) ? (
                     <span className="sem-acao">Status final</span>
                   ) : (
                     <button
                       type="button"
+                      className="compacto"
                       onClick={() =>
                         setAmostraEmEdicao(
                           amostraEmEdicao === amostra.id ? null : amostra.id,
