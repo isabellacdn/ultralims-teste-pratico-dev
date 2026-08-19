@@ -17,13 +17,13 @@ export function TabelaDeAmostras({ amostras }: Props) {
     <table>
       <thead>
         <tr>
-          <th>Codigo</th>
+          <th>Código</th>
           <th>Tipo</th>
           <th>Status</th>
-          <th>Responsavel tecnico</th>
+          <th>Responsável técnico</th>
           <th>Recebimento</th>
-          <th>Conclusao</th>
-          <th>Acoes</th>
+          <th>Conclusão</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>

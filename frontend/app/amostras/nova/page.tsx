@@ -70,7 +70,7 @@ export default function PaginaDeCadastro() {
         </label>
 
         <label>
-          Responsavel tecnico (opcional)
+          Responsável técnico (opcional)
           <input
             type="text"
             value={responsavelTecnico}

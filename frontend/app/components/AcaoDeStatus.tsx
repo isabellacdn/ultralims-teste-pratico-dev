@@ -61,7 +61,7 @@ export function AcaoDeStatus({ amostra, aoFechar }: Props) {
 
       {pedeResponsavelTecnico && (
         <label>
-          Responsavel tecnico
+          Responsável técnico
           <input
             type="text"
             value={responsavelTecnico}
@@ -72,7 +72,7 @@ export function AcaoDeStatus({ amostra, aoFechar }: Props) {
 
       {pedeDataDeConclusao && (
         <label>
-          Data de conclusao
+          Data de conclusão
           <input
             type="date"
             value={dataConclusao}

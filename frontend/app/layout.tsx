@@ -4,8 +4,8 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gestao de Amostras",
-  description: "Cadastro e acompanhamento de amostras de laboratorio",
+  title: "Gestão de Amostras",
+  description: "Cadastro e acompanhamento de amostras de laboratório",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -25,7 +25,7 @@ export default function PaginaDeAmostras() {
 
   return (
     <main>
-      <h1>Gestao de Amostras</h1>
+      <h1>Gestão de Amostras</h1>
 
       <FiltrosDeAmostras filtros={filtros} aoMudar={setFiltros} />
 

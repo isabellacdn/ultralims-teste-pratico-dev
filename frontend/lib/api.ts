@@ -78,7 +78,7 @@ async function enviar(
     });
   } catch {
     throw new ErroDaApi(
-      `Nao foi possivel falar com a API em ${URL_DA_API}. Verifique se ela esta rodando.`,
+      `Não foi possível falar com a API em ${URL_DA_API}. Verifique se ela está rodando.`,
       0,
     );
   }
@@ -108,7 +108,7 @@ function mensagemDe(corpo: unknown, status: number): string {
     return corpo.erro;
   }
 
-  return `A API respondeu com o codigo ${status}.`;
+  return `A API respondeu com o código ${status}.`;
 }
 
 function consultaDe(filtros: FiltrosDeAmostra): string {
