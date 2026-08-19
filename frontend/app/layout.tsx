@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Barlow, JetBrains_Mono } from "next/font/google";
+import { Cabecalho } from "./components/Cabecalho";
 import { Providers } from "./providers";
 import "./globals.css";
+
+const interface_ = Barlow({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--fonte-interface",
+});
+
+const monoespacada = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--fonte-monoespacada",
+});
 
 export const metadata: Metadata = {
   title: "Gestão de Amostras",
@@ -10,14 +23,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${interface_.variable} ${monoespacada.variable}`}>
       <body>
-        <header>
-          <nav>
-            <Link href="/">Amostras</Link>
-            <Link href="/amostras/nova">Nova amostra</Link>
-          </nav>
-        </header>
+        <Cabecalho />
         <Providers>{children}</Providers>
       </body>
     </html>
