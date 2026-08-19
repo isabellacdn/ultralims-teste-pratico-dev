@@ -76,6 +76,7 @@ export function AcaoDeStatus({ amostra, aoFechar }: Props) {
           Data de conclusão
           <input
             type="date"
+            min={amostra.data_recebimento}
             value={dataConclusao}
             onChange={(evento) => setDataConclusao(evento.target.value)}
           />
