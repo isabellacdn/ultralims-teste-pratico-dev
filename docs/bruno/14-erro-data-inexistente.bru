@@ -1,0 +1,18 @@
+meta {
+  name: Erro 400 - data inexistente
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{base_url}}/amostras
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "tipo": "Agua",
+    "data_recebimento": "2026-02-31"
+  }
+}
