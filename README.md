@@ -62,7 +62,7 @@ Coleção Bruno com as requisições da API em `docs/bruno/`.
 `tipo`: `Agua`, `Solo`, `Ar`, `Efluente` · `status`: `Recebida`, `EmAnalise`, `Concluida`,
 `Rejeitada` · datas em ISO. O `codigo` é gerado pelo backend no formato
 `{PREFIXO}-{ANO}-{SEQUENCIAL}` (ex.: `ISABELLA-2026-0001`), com sequencial de 4 dígitos que
-reinicia a cada ano. O ano é o da `data_recebimento` — que por isso não pode ser futura, senão
+reinicia a cada ano. O ano é o da `data_recebimento`, que por isso não pode ser futura, senão
 a numeração de um ano seria consumida antes dele chegar.
 
 ---
