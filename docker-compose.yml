@@ -1,7 +1,9 @@
+name: teste-dev
+
 services:
   mysql:
     image: mysql:8.0
-    container_name: ultralims-mysql
+    container_name: teste-dev-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -9,15 +11,52 @@ services:
       MYSQL_USER: ultralims
       MYSQL_PASSWORD: ultralims
     ports:
-      # host:container — a 3306 do container aparece como 3307 na minha maquina
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/database/banco-de-teste.sql:/docker-entrypoint-initdb.d/02-banco-de-teste.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 5s
       timeout: 5s
       retries: 20
+
+  api:
+    build: ./backend
+    container_name: teste-dev-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ultralims
+      DB_USERNAME: ultralims
+      DB_PASSWORD: ultralims
+      CODIGO_PREFIXO: ISABELLA
+      APP_DEBUG: "true"
+      CORS_ORIGENS_PERMITIDAS: http://localhost:3001
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://localhost:8081/health') ? 0 : 1);"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    build: ./frontend
+    container_name: teste-dev-frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8081
+    ports:
+      - "3001:3001"
 
 volumes:
   mysql_data:
