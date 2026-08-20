@@ -5,7 +5,7 @@ transição de status governada pelas regras de negócio do enunciado.
 
 - **Backend:** PHP 8 + Slim, Clean Architecture (`Domain` / `Application` / `Infrastructure`), MySQL
 - **Frontend:** Next.js (App Router) + TypeScript + React Query
-- **Testes:** PHPUnit, 87 testes cobrindo as regras 1 a 5
+- **Testes:** PHPUnit, 105 testes cobrindo as regras 1 a 5
 
 ---
 
@@ -42,11 +42,10 @@ cd frontend && cp .env.example .env.local && npm install     && npm run dev
 docker compose exec api ./vendor/bin/phpunit --testdox     # ou, em backend/: ./vendor/bin/phpunit --testdox
 ```
 
-Saída atual: `OK (87 tests, 117 assertions)`, sendo 80 unitários (sem banco) e 7 de integração.
+Saída atual: `OK (105 tests, 145 assertions)`, sendo 98 unitários (sem banco) e 7 de integração.
 Filtrar por suíte: `--testsuite Unit` ou `--testsuite Integration`.
 
-Roteiro manual ponta a ponta em [`docs/COMO-TESTAR.md`](docs/COMO-TESTAR.md); coleção Bruno em
-`docs/bruno/`.
+Coleção Bruno com as requisições da API em `docs/bruno/`.
 
 ---
 
