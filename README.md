@@ -530,6 +530,11 @@ O acento nos valores é resolvido na exibição: `ROTULOS_DE_TIPO` e `ROTULOS_DE
 e `EmAnalise`. Como são tipados por `Record<TipoAmostra, string>`, um valor novo sem rótulo
 vira erro de compilação.
 
+No backend vale o mesmo: `StatusAmostra::rotulo()` é o equivalente de `ROTULOS_DE_STATUS`, e as
+mensagens de `TransicaoInvalidaException` usam ele em vez do `value`. Sem isso o identificador
+vazava para o texto lido por gente e a tela mostrava "de EmAnalise para Recebida", grudado e sem
+acento, enquanto o mesmo status aparecia como "Em análise" na listagem ao lado.
+
 ### Sem comentários no código
 
 O código não tem comentários. Onde caberia um `// Regra 2: ...`, existe um método chamado
