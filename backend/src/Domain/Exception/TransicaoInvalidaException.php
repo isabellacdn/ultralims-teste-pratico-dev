@@ -12,8 +12,8 @@ final class TransicaoInvalidaException extends RegraDeNegocioException
     {
         return new self(sprintf(
             'Não é possível transicionar de %s para %s.',
-            $atual->value,
-            $destino->value
+            $atual->rotulo(),
+            $destino->rotulo()
         ));
     }
 
@@ -21,7 +21,7 @@ final class TransicaoInvalidaException extends RegraDeNegocioException
     {
         return new self(sprintf(
             'A amostra está com status %s, que é um estado final, e não pode mais ser alterada.',
-            $atual->value
+            $atual->rotulo()
         ));
     }
 }

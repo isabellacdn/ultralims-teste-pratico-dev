@@ -11,6 +11,16 @@ enum StatusAmostra: string
     case Concluida = 'Concluida';
     case Rejeitada = 'Rejeitada';
 
+    public function rotulo(): string
+    {
+        return match ($this) {
+            self::Recebida => 'Recebida',
+            self::EmAnalise => 'Em análise',
+            self::Concluida => 'Concluída',
+            self::Rejeitada => 'Rejeitada',
+        };
+    }
+
     public function ehFinal(): bool
     {
         return $this === self::Concluida || $this === self::Rejeitada;
