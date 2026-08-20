@@ -15,7 +15,7 @@
         </testsuite>
     </testsuites>
     <php>
-        <env name="DB_DATABASE" value="ultralims_teste"/>
+        <env name="DB_DATABASE" value="ultralims_teste" force="true"/>
     </php>
     <source>
         <include>
