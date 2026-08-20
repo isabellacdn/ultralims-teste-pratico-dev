@@ -143,31 +143,37 @@ coisas: o **código de status** (em cima) e o **corpo da resposta** (embaixo).
 
 ### C4. Roteiro do caminho feliz
 
-| # | Requisição | Esperado | O que comprova |
+A lista lateral do Bruno exibe o nome definido dentro de cada arquivo, não o nome do
+arquivo no disco. Os nomes abaixo são os que aparecem na tela.
+
+| # | Requisição na lista do Bruno | Esperado | O que comprova |
 | --- | --- | --- | --- |
 | 01 | Health | `200` | API no ar |
 | 02 | Cadastrar amostra | `201`, `"status":"Recebida"` | regra 1, e o código é gerado pelo backend |
-| 04 | Listar | `200` + array | a amostra criada está na lista |
-| 07 | Iniciar análise | `200`, `"status":"EmAnalise"` | regra 2 (o corpo envia `responsavel_tecnico`) |
-| 08 | Concluir | `200`, `"status":"Concluida"` | regra 3 (data de conclusão válida) |
+| 04 | Listar amostras | `200` + array | a amostra criada está na lista |
+| 07 | Transicionar para EmAnalise | `200`, `"status":"EmAnalise"` | regra 2 (o corpo envia `responsavel_tecnico`) |
+| 08 | Transicionar para Concluida | `200`, `"status":"Concluida"` | regra 3 (data de conclusão válida) |
+| 09 | Transicionar para Rejeitada | `200`, `"status":"Rejeitada"` | regra 4 |
 
-A requisição 02 guarda o id da amostra recém-criada na variável `{{amostra_id}}`, usada na
-URL das requisições 06 a 11. Por isso a ordem importa: **rodar a 02 antes delas**.
+A requisição "Cadastrar amostra" guarda o id da amostra recém-criada na variável
+`{{amostra_id}}`, usada na URL das requisições 06 a 11. Por isso a ordem importa: **rodar
+"Cadastrar amostra" antes delas**.
 
 ### C5. Roteiro dos erros
 
 Aqui, resposta de erro é sinal de sucesso: significa que a regra bloqueou o que devia.
 
-| # | Requisição | Esperado |
+| # | Requisição na lista do Bruno | Esperado |
 | --- | --- | --- |
-| 10 | Análise sem responsável técnico | `422` |
-| 11 | Conclusão com data anterior ao recebimento | `422` |
-| 12 | Tipo de amostra inválido | `400` |
-| 13 | Amostra inexistente | `404` |
+| 10 | Erro 422 - analise sem responsavel | `422` |
+| 11 | Erro 422 - conclusao anterior ao recebimento | `422` |
+| 12 | Erro 400 - tipo invalido | `400` |
+| 13 | Erro 404 - amostra inexistente | `404` |
 
-`Concluida` e `Rejeitada` são estados finais (regra 5). Depois da requisição 08, qualquer
-nova transição sobre a mesma amostra responde `422` — comportamento correto. Para testar
-cada erro isoladamente, rodar a 02 antes, obtendo uma amostra nova em `Recebida`.
+`Concluida` e `Rejeitada` são estados finais (regra 5). Depois de "Transicionar para
+Concluida", qualquer nova transição sobre a mesma amostra responde `422` — comportamento
+correto. Para testar cada erro isoladamente, rodar "Cadastrar amostra" antes, obtendo uma
+amostra nova em `Recebida`.
 
 ## Parte D — Testar a interface
 
@@ -198,7 +204,7 @@ usuário brasileiro vê.
 
 **Requisição falhando em tudo no Bruno.** Environment `local` não selecionado.
 
-**`{{amostra_id}}` apontando para a amostra errada.** Rodar a requisição 02 novamente.
+**`{{amostra_id}}` apontando para a amostra errada.** Rodar "Cadastrar amostra" novamente.
 
 **Porta ocupada ao subir a API.** Uma instância anterior continua no ar; ver o passo A2.
 
