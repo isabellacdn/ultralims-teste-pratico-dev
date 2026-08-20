@@ -28,8 +28,10 @@ listagem com filtros e transição de status governada por regras de negócio.
 ```
 desafio-dev/
 ├── backend/              # API em PHP + Slim
+│   ├── Dockerfile        # imagem da API (PHP 8.2 + pdo_mysql + Composer)
 │   ├── database/
-│   │   └── schema.sql    # estrutura da tabela amostras
+│   │   ├── schema.sql          # estrutura da tabela amostras
+│   │   └── banco-de-teste.sql  # cria o banco usado pelos testes de integração
 │   ├── public/index.php  # entrada da aplicação: middlewares e rotas
 │   ├── src/
 │   │   ├── Domain/          # entidade, enums, value object, regras, contratos
@@ -40,12 +42,13 @@ desafio-dev/
 │       ├── Integration/     # repositório MySQL contra o banco real
 │       └── Support/         # repositório em memória usado nos testes
 ├── frontend/             # interface em Next.js
+│   ├── Dockerfile           # imagem do frontend (Node 20)
 │   ├── app/                 # páginas e componentes
 │   └── lib/                 # tipos da amostra e cliente HTTP da API
 ├── docs/
 │   ├── COMO-TESTAR.md       # roteiro de verificação manual ponta a ponta
 │   └── bruno/               # coleção Bruno com as 13 requisições da API
-└── docker-compose.yml    # MySQL 8
+└── docker-compose.yml    # MySQL 8, API e frontend
 ```
 
 A separação em `Domain / Application / Infrastructure` é descrita em
@@ -55,19 +58,17 @@ A separação em `Domain / Application / Infrastructure` é descrita em
 
 ## Pré-requisitos
 
-| Ferramenta | Versão | Observação |
-| --- | --- | --- |
-| PHP | 8.2 ou superior | precisa da extensão **`pdo_mysql`** — no Ubuntu: `sudo apt install php8.3-mysql` |
-| Composer | 2.x | gerenciador de dependências do PHP |
-| Node.js | 20 ou superior | com npm |
-| Docker | com Docker Compose | usado **apenas** para o MySQL |
+**Docker com Docker Compose** — e mais nada.
 
-Conferir a extensão do PHP antes de começar (sem ela a API sobe e quebra na primeira
-consulta ao banco):
+PHP, Composer, Node e MySQL rodam dentro dos containers; nenhum deles precisa estar
+instalado na máquina. Para conferir:
 
 ```bash
-php -m | grep pdo_mysql
+docker compose version
 ```
+
+Quem preferir rodar sem Docker precisa de PHP 8.2+ (com a extensão **`pdo_mysql`**),
+Composer 2.x e Node 20+ — ver [Rodar sem Docker](#rodar-sem-docker).
 
 ---
 
@@ -86,9 +87,12 @@ Nenhuma delas está fixa no código — todas saem de configuração:
 
 | Porta | Onde muda |
 | --- | --- |
-| MySQL | `docker-compose.yml` (lado esquerdo de `"3307:3306"`) **e** `DB_PORT` em `backend/.env` |
-| API | script `start` em `backend/composer.json` **e** `NEXT_PUBLIC_API_URL` em `frontend/.env.local` |
-| Frontend | script `dev` em `frontend/package.json` **e** `CORS_ORIGENS_PERMITIDAS` em `backend/.env` |
+| MySQL | `ports` do serviço `mysql` no `docker-compose.yml` (lado esquerdo de `"3307:3306"`) |
+| API | `ports` do serviço `api` **e** `NEXT_PUBLIC_API_URL` no `docker-compose.yml` |
+| Frontend | `ports` do serviço `frontend` **e** `CORS_ORIGENS_PERMITIDAS` no `docker-compose.yml` |
+
+Rodando sem Docker, os mesmos valores saem de `backend/.env`, `frontend/.env.local` e dos
+scripts `start` (em `backend/composer.json`) e `dev` (em `frontend/package.json`).
 
 > Se trocar a porta do frontend, é obrigatório atualizar `CORS_ORIGENS_PERMITIDAS`, senão
 > o navegador bloqueia as chamadas à API.
@@ -97,40 +101,22 @@ Nenhuma delas está fixa no código — todas saem de configuração:
 
 ## Como rodar
 
-São três processos independentes: banco, API e frontend. Use uma aba de terminal para
-cada um — as abas da API e do frontend ficam ocupadas enquanto os serviços estiverem no ar.
-
-### 1. Subir o banco
+Banco, API e frontend sobem juntos, com um comando só, a partir da raiz do repositório:
 
 ```bash
-docker compose up -d
+docker compose up
 ```
 
-O container tem *healthcheck*. Espere aparecer `healthy` antes de seguir:
+Na primeira execução o Docker constrói as imagens da API e do frontend — leva alguns
+minutos. Nas seguintes é quase imediato. Quando terminar:
 
-```bash
-docker compose ps
-```
+| Serviço | Endereço |
+| --- | --- |
+| Interface | <http://localhost:3001> |
+| API | <http://localhost:8081> |
+| MySQL | `localhost:3307` |
 
-### 2. Criar a tabela
-
-```bash
-docker exec -i ultralims-mysql mysql -uultralims -pultralims ultralims \
-  < backend/database/schema.sql
-```
-
-O arquivo usa `CREATE TABLE IF NOT EXISTS`, então rodar de novo não quebra nada.
-
-### 3. Configurar e subir a API
-
-```bash
-cd backend
-cp .env.example .env
-composer install
-composer start
-```
-
-A API sobe em `http://localhost:8081`. Para confirmar:
+Para confirmar que a API respondeu:
 
 ```bash
 curl -i http://localhost:8081/health
@@ -138,57 +124,86 @@ curl -i http://localhost:8081/health
 
 Esperado: `HTTP/1.1 200 OK` e `{"status":"ok"}`.
 
-#### As variáveis do `.env`
+| Comando | O que faz |
+| --- | --- |
+| `docker compose up -d` | sobe em segundo plano e devolve o terminal |
+| `docker compose ps` | mostra o estado dos três containers |
+| `docker compose logs -f api` | acompanha o log de um serviço |
+| `docker compose down` | para tudo, **preservando** os dados do banco |
+| `docker compose down -v` | para tudo e **apaga** os dados do banco |
+
+### Não é preciso criar nenhum `.env`
+
+A configuração dos containers vem do bloco `environment:` do `docker-compose.yml`, não de
+arquivo. `Ambiente::carregar()` usa o `safeLoad()` do phpdotenv, que não reclama quando o
+`.env` não existe — dentro do container as variáveis chegam direto do compose.
+
+Os `.env.example` continuam versionados porque são necessários para rodar sem Docker.
+
+### A tabela é criada sozinha
+
+Os `.sql` montados em `/docker-entrypoint-initdb.d/` rodam quando o volume do MySQL é criado:
+`schema.sql` cria a tabela `amostras`, e `banco-de-teste.sql` cria o banco `ultralims_teste`
+que os testes de integração usam.
+
+⚠️ Eles rodam **apenas em volume novo**. Se já existir um volume de uma execução anterior, o
+MySQL ignora os scripts. Para forçar a recriação do zero:
+
+```bash
+docker compose down -v && docker compose up
+```
+
+### As variáveis de configuração
+
+Ficam em `environment:` no `docker-compose.yml` (modo Docker) e nos `.env` (modo local):
 
 | Variável | Padrão | Para que serve |
 | --- | --- | --- |
-| `DB_HOST` / `DB_PORT` | `127.0.0.1` / `3307` | onde o MySQL do Docker está publicado |
+| `DB_HOST` / `DB_PORT` | `mysql` / `3306` no Docker; `127.0.0.1` / `3307` fora | onde o MySQL está |
 | `DB_DATABASE` | `ultralims` | banco de desenvolvimento |
 | `DB_USERNAME` / `DB_PASSWORD` | `ultralims` / `ultralims` | credenciais criadas pelo `docker-compose.yml` |
 | `CODIGO_PREFIXO` | `ISABELLA` | prefixo do código da amostra: `{PREFIXO}-{ANO}-{SEQUENCIAL}` |
 | `APP_DEBUG` | `true` | em erro 500, mostra a mensagem real. **Configuração de desenvolvimento** — em produção seria `false`, e a resposta viraria apenas "Erro interno no servidor." |
 | `CORS_ORIGENS_PERMITIDAS` | `http://localhost:3001` | origens autorizadas a chamar a API pelo navegador, separadas por vírgula |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8081` | endereço da API usado pelo frontend |
 
-### 4. Subir o frontend
+### Rodar sem Docker
 
-Em outra aba, a partir da raiz do repositório:
+Alternativa para quem já tem PHP 8.2+ com `pdo_mysql`, Composer e Node 20 na máquina. São
+três processos, um por aba de terminal.
 
 ```bash
-cd frontend
+docker compose up -d mysql          # só o banco
+
+cd backend                          # aba 2 — API em http://localhost:8081
+cp .env.example .env
+composer install
+composer start
+
+cd frontend                         # aba 3 — interface em http://localhost:3001
 cp .env.example .env.local
 npm install
 npm run dev
 ```
 
-A interface abre em `http://localhost:3001`. Ela tem uma tela só: listagem com contagem
-por status, filtros de status e tipo, botão **+ Nova amostra** (cadastro em modal) e a
-ação de transição de status em cada linha da tabela.
-
-A única variável do frontend é `NEXT_PUBLIC_API_URL`. O prefixo `NEXT_PUBLIC_` é
-obrigatório: sem ele a variável não chega ao navegador, que é de onde as chamadas partem.
+Aqui o `.env` é obrigatório: fora do compose ninguém define as variáveis de ambiente. E é
+por isso que ele aponta para `127.0.0.1:3307` — de fora da rede do Docker, o MySQL só é
+alcançável pela porta publicada.
 
 ---
 
 ## Como rodar os testes
 
-Os testes de integração usam um banco **separado** (`ultralims_teste`), para nunca apagar
-os dados de desenvolvimento. Criar esse banco uma única vez, com o container no ar:
+Com os containers no ar, a suíte roda dentro do container da API:
 
 ```bash
-docker exec ultralims-mysql mysql -uroot -proot \
-  -e "CREATE DATABASE IF NOT EXISTS ultralims_teste CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; \
-      GRANT ALL PRIVILEGES ON ultralims_teste.* TO 'ultralims'@'%'; FLUSH PRIVILEGES;"
-
-docker exec -i ultralims-mysql mysql -uultralims -pultralims ultralims_teste \
-  < backend/database/schema.sql
+docker compose exec api ./vendor/bin/phpunit --testdox
 ```
 
-Rodar a suíte completa:
+Sem Docker, a partir de `backend/`: `./vendor/bin/phpunit --testdox`.
 
-```bash
-cd backend
-./vendor/bin/phpunit --testdox
-```
+O banco de teste (`ultralims_teste`) é criado pelo `banco-de-teste.sql` junto com o volume
+do MySQL — não há passo manual.
 
 O `--testdox` imprime cada teste como uma frase legível, o que transforma a saída em uma
 lista de requisitos verificados — serve como evidência de cobertura das regras.
@@ -201,8 +216,8 @@ Saída atual: **`OK (79 tests, 109 assertions)`**.
 | `Integration` | 7 | sim |
 
 ```bash
-./vendor/bin/phpunit --testsuite Unit --testdox         # regras de negócio, sem infraestrutura
-./vendor/bin/phpunit --testsuite Integration --testdox  # repositório MySQL contra o banco real
+docker compose exec api ./vendor/bin/phpunit --testsuite Unit --testdox
+docker compose exec api ./vendor/bin/phpunit --testsuite Integration --testdox
 ```
 
 **Por que os testes das regras não precisam de banco nem servidor:** as regras moram na
@@ -387,27 +402,60 @@ O retry é invisível ao usuário de propósito: o número é gerado pelo sistem
 porque retry infinito transforma bug em travamento: três colisões seguidas não são
 concorrência normal, e aí o certo é falhar com `500`.
 
-### MySQL no Docker; PHP e Node fora
+### Ambiente inteiro em containers
 
-Só o banco está containerizado, por três motivos: **reprodutibilidade** (o
-`docker-compose.yml` é a receita exata — versão, usuário, senha, base; a alternativa seria
-um README dizendo "instale o MySQL 8 e crie o usuário X"), **isolamento** (a máquina de
-desenvolvimento roda outros serviços) e **descarte limpo** (`docker compose down -v` e não
-sobra nada).
+Os três serviços — MySQL, API e frontend — estão no `docker-compose.yml`, e `docker compose
+up` sobe o projeto do zero. O ganho é **reprodutibilidade**: o compose é a receita exata
+(versões, usuário, senha, base, portas), em vez de um README pedindo "instale PHP 8.2 com
+`pdo_mysql`, Composer, Node 20 e MySQL 8". A extensão `pdo_mysql` faltando era o tropeço
+mais provável de quem fosse rodar o projeto, e ele deixou de existir.
 
-PHP e Node ficaram fora por decisão de escopo dentro do prazo: já estavam instalados e
-funcionando. Containerizar os três daria um ambiente mais uniforme, mas custaria tempo que
-foi investido nas regras de negócio e nos testes. O banco foi o caso em que o container
-resolvia um problema real.
+Junto vêm **isolamento** (a máquina de desenvolvimento roda outros serviços nas portas
+usuais) e **descarte limpo** (`docker compose down -v` e não sobra nada instalado).
 
-Os dados ficam em um volume nomeado (`mysql_data`), não em uma pasta do projeto: evita
-problema de permissão de arquivo e não suja o repositório.
+Os dados do banco ficam em um volume nomeado (`mysql_data`), não em uma pasta do projeto:
+evita problema de permissão de arquivo e não suja o repositório.
 
-### `schema.sql` na mão, sem ferramenta de migration
+Rodar sem Docker continua funcionando, com os `.env` — os dois caminhos convivem.
 
-Uma tabela só. Phinx (ou equivalente) custaria instalação, configuração e mais uma peça para
-manter, sem benefício neste tamanho. O arquivo é auto-explicativo: dá para abrir e entender
-a estrutura em dez segundos.
+#### Três detalhes que a containerização exigiu
+
+**1. `NEXT_PUBLIC_API_URL` continua `http://localhost:8081`, não `http://api:8081`.**
+Dentro da rede do compose, um container alcança o outro pelo nome do serviço — e é assim
+que a API fala com o MySQL (`DB_HOST=mysql`, porta interna `3306`). Mas a chamada à API não
+parte do container do frontend: parte do **navegador**, que roda na máquina de quem acessa e
+não enxerga a rede do Docker. Trocar para `api:8081` quebraria a tela com erro de rede.
+O nome do serviço vale para tráfego entre containers; a porta publicada vale para o
+navegador.
+
+**2. O servidor embutido do PHP passou a escutar em `0.0.0.0`.** O `composer start` usa
+`php -S localhost:8081`, que só aceita conexão originada de dentro do próprio container —
+a porta publicada não responderia. Por isso o `CMD` da imagem usa `0.0.0.0:8081`, enquanto o
+script `start` do Composer segue em `localhost` para o uso fora do Docker.
+
+**3. O `phpunit.xml` ganhou `force="true"` no `DB_DATABASE`.** O `<env>` do PHPUnit não
+sobrescreve variável que já exista no ambiente. Fora do Docker isso nunca apareceu, porque o
+`.env` é lido só pelo `public/index.php`, e não pelo bootstrap do PHPUnit — a variável estava
+vazia e o PHPUnit definia `ultralims_teste`. Dentro do container ela existe de verdade,
+valendo `ultralims`: sem o `force`, os testes de integração rodariam contra o banco de
+desenvolvimento, e o `DELETE FROM amostras` do `setUp` apagaria os dados reais.
+
+### `schema.sql` na mão, aplicado pelo próprio MySQL
+
+Os `.sql` são montados em `/docker-entrypoint-initdb.d/`, diretório que a imagem oficial do
+MySQL executa quando inicializa um volume novo. Isso elimina dois passos manuais do README
+anterior (criar a tabela e criar o banco de teste) sem introduzir ferramenta nova.
+
+O `banco-de-teste.sql` termina com `SOURCE /docker-entrypoint-initdb.d/01-schema.sql`, em vez
+de repetir o `CREATE TABLE`: a estrutura da tabela continua declarada em um lugar só, e o
+banco de teste não pode divergir do de desenvolvimento.
+
+O preço é que os scripts rodam **apenas em volume novo** — em volume existente o MySQL os
+ignora. Está avisado em [Como rodar](#como-rodar).
+
+Não há ferramenta de migration porque é uma tabela só: Phinx (ou equivalente) custaria
+instalação, configuração e mais uma peça para manter, sem benefício neste tamanho. O SQL é
+auto-explicativo — dá para abrir e entender a estrutura em dez segundos.
 
 ### `tipo` e `status` como `VARCHAR`, não `ENUM` do MySQL
 
@@ -499,7 +547,10 @@ faz. O "porquê" das decisões está aqui no README e nas mensagens de commit.
   aumentaria a superfície do projeto sem acrescentar nada ao que está sendo avaliado.
 - **Sem paginação na listagem.** Para o volume do exercício, os filtros de status e tipo
   bastam; com dados de verdade, `GET /amostras` precisaria de `limit`/`offset`.
-- **PHP e Node não estão containerizados** — ver a decisão sobre Docker acima.
+- **Os containers são de desenvolvimento, não de produção.** A API roda no servidor embutido
+  do PHP (`php -S`, single-thread) e o frontend em `next dev`. Em produção seriam
+  PHP-FPM atrás de Nginx e `next build` + `next start`, em imagens multi-stage sem as
+  dependências de desenvolvimento.
 - **O campo de data segue o idioma do navegador.** O `<input type="date">` exibe `mm/dd/aaaa`
   em navegador configurado em inglês; o valor enviado é sempre ISO. Não é controlável pelo
   site.

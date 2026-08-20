@@ -18,77 +18,56 @@ Consequência prática: **o que é cadastrado pelo Bruno aparece no frontend** (
 A tela não descobre sozinha que surgiu dado novo — é preciso recarregar (F5) ou trocar um
 filtro, porque a listagem fica em cache no cliente.
 
-Cada peça sobe sozinha e pode estar no ar sem as outras. Frontend ligado com a API
+Cada peça é um container e pode estar no ar sem as outras. Frontend ligado com a API
 desligada mostra o aviso "Não foi possível falar com a API" — não é defeito da tela, é a
 API fora do ar.
 
-## Preparação (uma única vez)
-
-Os testes de integração usam um banco separado, `ultralims_teste`. Com o container do MySQL
-no ar, criar o banco e aplicar o schema nele:
-
-```bash
-docker exec ultralims-mysql mysql -uroot -proot \
-  -e "CREATE DATABASE IF NOT EXISTS ultralims_teste CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; \
-      GRANT ALL PRIVILEGES ON ultralims_teste.* TO 'ultralims'@'%'; FLUSH PRIVILEGES;"
-
-docker exec -i ultralims-mysql mysql -uultralims -pultralims ultralims_teste \
-  < backend/database/schema.sql
-```
-
 ## Parte A — Ligar tudo
 
-Use uma aba de terminal para cada serviço. As abas dos serviços ficam ocupadas: é o
-comportamento esperado, não feche.
-
-### A1. Banco
+### A1. Subir os três serviços
 
 ```bash
 cd ~/codes/desafio-dev && docker compose up -d
 ```
 
-Esperado: linhas terminando em `Running` ou `Started`. Se o container já existir, a saída
-avisa que ele está de pé — está correto.
+Esperado: `Started` para `teste-dev-mysql`, `teste-dev-api` e `teste-dev-frontend`. Na
+primeira execução o Docker constrói as imagens antes, o que leva alguns minutos.
 
-### A2. API
+Não há preparação de banco: a tabela `amostras` e o banco `ultralims_teste` são criados
+pelos scripts de inicialização do MySQL.
+
+### A2. Confirmar que os três estão de pé
 
 ```bash
-cd ~/codes/desafio-dev/backend && php -S localhost:8081 -t public
+docker compose ps
 ```
 
-Esperado: `Development Server (http://localhost:8081) started`. O prompt não volta.
+Esperado: `mysql` e `api` com `(healthy)`, `frontend` com `Up`.
 
-Se aparecer `Failed to listen on localhost:8081 (reason: Address already in use)`, a API
-já está rodando de uma sessão anterior. Confirme com o passo A4 e siga em frente; para
-subir na sua própria aba, encerre a anterior antes:
+Se alguma porta estiver ocupada por um processo antigo fora do Docker, o container não sobe.
+Para encerrar sobras de execuções anteriores:
 
 ```bash
 pkill -f "php -S localhost:8081"
+pkill -f "next dev"
 ```
 
-### A3. Frontend
+### A3. Confirmar que a API responde
 
-```bash
-cd ~/codes/desafio-dev/frontend && npm run dev
-```
-
-Esperado: `Local: http://localhost:3001`.
-
-### A4. Confirmar que a API responde
-
-Em uma quarta aba, que fica livre para os comandos avulsos:
+Com os containers em segundo plano, o terminal fica livre:
 
 ```bash
 curl -i http://localhost:8081/health
 ```
 
 Esperado: `HTTP/1.1 200 OK` e `{"status":"ok"}`.
-`Connection refused` significa que a API não está no ar — volte ao passo A2.
+`Connection refused` significa que a API não está no ar — volte ao passo A2 e veja o log com
+`docker compose logs api`.
 
 ## Parte B — Testes automatizados
 
 ```bash
-cd ~/codes/desafio-dev/backend && ./vendor/bin/phpunit --testdox
+cd ~/codes/desafio-dev && docker compose exec api ./vendor/bin/phpunit --testdox
 ```
 
 O `--testdox` imprime cada teste como uma frase legível, o que transforma a saída em uma
@@ -105,8 +84,8 @@ definido em `phpunit.xml`, e nunca toca nos dados de desenvolvimento.
 Para rodar apenas uma das suítes:
 
 ```bash
-./vendor/bin/phpunit --testsuite Unit --testdox
-./vendor/bin/phpunit --testsuite Integration --testdox
+docker compose exec api ./vendor/bin/phpunit --testsuite Unit --testdox
+docker compose exec api ./vendor/bin/phpunit --testsuite Integration --testdox
 ```
 
 Rodar depois de qualquer alteração no backend.
@@ -209,8 +188,10 @@ usuário brasileiro vê.
 **Porta ocupada ao subir a API.** Uma instância anterior continua no ar; ver o passo A2.
 
 **As amostras sumiram depois de rodar os testes.** A suíte `Integration` limpa a tabela
-antes de cada teste. Ela só deve fazer isso em `ultralims_teste`: conferir se o bloco
-`<php><env name="DB_DATABASE" .../></php>` continua no `phpunit.xml`.
+antes de cada teste. Ela só deve fazer isso em `ultralims_teste`: conferir se o
+`phpunit.xml` continua com `<env name="DB_DATABASE" value="ultralims_teste" force="true"/>`.
+O `force` é indispensável dentro do container, onde `DB_DATABASE` já vem definida pelo
+compose — sem ele o PHPUnit não sobrescreve, e a suíte cai no banco de desenvolvimento.
 
 **Tela não mostra o que foi cadastrado pelo Bruno.** A listagem está em cache no cliente:
 recarregar a página ou trocar um filtro.
