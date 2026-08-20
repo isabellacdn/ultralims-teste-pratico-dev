@@ -38,6 +38,14 @@ final class RequisicaoInvalidaException extends RuntimeException
         ));
     }
 
+    public static function dataInexistente(string $campo): self
+    {
+        return new self(sprintf(
+            'O campo %s não corresponde a uma data existente no calendário.',
+            self::rotuloDe($campo),
+        ));
+    }
+
     private static function rotuloDe(string $campo): string
     {
         return self::ROTULOS[$campo] ?? $campo;

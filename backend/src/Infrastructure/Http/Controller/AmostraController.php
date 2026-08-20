@@ -138,9 +138,15 @@ final readonly class AmostraController
 
         $data = DateTimeImmutable::createFromFormat('!Y-m-d', $valor);
 
-        return $data === false
-            ? throw RequisicaoInvalidaException::dataInvalida($campo)
-            : $data;
+        if ($data === false) {
+            throw RequisicaoInvalidaException::dataInvalida($campo);
+        }
+
+        if ($data->format('Y-m-d') !== $valor) {
+            throw RequisicaoInvalidaException::dataInexistente($campo);
+        }
+
+        return $data;
     }
 
     private function textoOpcional(array $dados, string $campo): ?string
