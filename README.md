@@ -208,11 +208,11 @@ do MySQL — não há passo manual.
 O `--testdox` imprime cada teste como uma frase legível, o que transforma a saída em uma
 lista de requisitos verificados — serve como evidência de cobertura das regras.
 
-Saída atual: **`OK (79 tests, 109 assertions)`**.
+Saída atual: **`OK (87 tests, 117 assertions)`**.
 
 | Suíte | Testes | Precisa de banco? |
 | --- | --- | --- |
-| `Unit` | 72 | **não** |
+| `Unit` | 80 | **não** |
 | `Integration` | 7 | sim |
 
 ```bash
