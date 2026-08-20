@@ -6,6 +6,7 @@ namespace Tests\Unit\Application;
 
 use App\Application\DTO\CadastrarAmostraInput;
 use App\Application\Exception\FalhaAoGerarCodigoException;
+use App\Domain\Exception\DataRecebimentoInvalidaException;
 use App\Application\UseCase\CadastrarAmostra;
 use App\Domain\Enum\StatusAmostra;
 use App\Domain\Enum\TipoAmostra;
@@ -49,10 +50,10 @@ final class CadastrarAmostraTest extends TestCase
     public function testShouldUseReceiptYearInGeneratedCode(): void
     {
         $amostra = $this->useCase()->executar(
-            new CadastrarAmostraInput(TipoAmostra::Solo, new DateTimeImmutable('2027-01-05'))
+            new CadastrarAmostraInput(TipoAmostra::Solo, new DateTimeImmutable('2025-01-05'))
         );
 
-        self::assertSame('ISABELLA-2027-0001', $amostra->codigo()->valor());
+        self::assertSame('ISABELLA-2025-0001', $amostra->codigo()->valor());
     }
 
     public function testShouldRetrySilentlyWhenCodeCollides(): void
@@ -86,6 +87,27 @@ final class CadastrarAmostraTest extends TestCase
     private function useCase(): CadastrarAmostra
     {
         return new CadastrarAmostra($this->repositorio, 'ISABELLA');
+    }
+
+    public function testShouldRejectSampleReceivedInTheFuture(): void
+    {
+        $this->expectException(DataRecebimentoInvalidaException::class);
+
+        $this->useCase()->executar(
+            new CadastrarAmostraInput(TipoAmostra::Agua, new DateTimeImmutable('+1 day')),
+        );
+    }
+
+    public function testShouldNotSaveAnythingWhenReceivingDateIsInTheFuture(): void
+    {
+        try {
+            $this->useCase()->executar(
+                new CadastrarAmostraInput(TipoAmostra::Agua, new DateTimeImmutable('+1 day')),
+            );
+        } catch (DataRecebimentoInvalidaException) {
+        }
+
+        self::assertSame([], $this->repositorio->listar());
     }
 
     private function input(): CadastrarAmostraInput

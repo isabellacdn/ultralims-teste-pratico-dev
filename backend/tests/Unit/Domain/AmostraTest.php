@@ -8,6 +8,7 @@ use App\Domain\Entity\Amostra;
 use App\Domain\Enum\StatusAmostra;
 use App\Domain\Enum\TipoAmostra;
 use App\Domain\Exception\DataConclusaoInvalidaException;
+use App\Domain\Exception\DataRecebimentoInvalidaException;
 use App\Domain\Exception\RegraDeNegocioException;
 use App\Domain\Exception\ResponsavelTecnicoObrigatorioException;
 use App\Domain\Exception\TransicaoInvalidaException;
@@ -21,6 +22,8 @@ use PHPUnit\Framework\TestCase;
 final class AmostraTest extends TestCase
 {
     private const RECEBIMENTO = '2026-08-10';
+
+    private const HOJE = '2026-08-20';
 
     public function testShouldCreateSampleWithReceivedStatus(): void
     {
@@ -198,6 +201,54 @@ final class AmostraTest extends TestCase
         }
     }
 
+    public function testShouldRejectReceivingDateInTheFuture(): void
+    {
+        $this->expectException(DataRecebimentoInvalidaException::class);
+
+        Amostra::criar(
+            CodigoAmostra::gerar('ISABELLA', 2026, 1),
+            TipoAmostra::Agua,
+            new DateTimeImmutable('2026-08-21'),
+            new DateTimeImmutable(self::HOJE),
+        );
+    }
+
+    public function testShouldRejectReceivingDateYearsAhead(): void
+    {
+        $this->expectException(DataRecebimentoInvalidaException::class);
+
+        Amostra::criar(
+            CodigoAmostra::gerar('ISABELLA', 2099, 1),
+            TipoAmostra::Agua,
+            new DateTimeImmutable('2099-01-01'),
+            new DateTimeImmutable(self::HOJE),
+        );
+    }
+
+    public function testShouldAcceptSampleReceivedToday(): void
+    {
+        $amostra = Amostra::criar(
+            CodigoAmostra::gerar('ISABELLA', 2026, 1),
+            TipoAmostra::Agua,
+            new DateTimeImmutable(self::HOJE),
+            new DateTimeImmutable(self::HOJE),
+        );
+
+        self::assertSame(self::HOJE, $amostra->dataRecebimento()->format('Y-m-d'));
+    }
+
+    public function testShouldIgnoreTimeOfDayWhenComparingWithToday(): void
+    {
+        $amostra = Amostra::criar(
+            CodigoAmostra::gerar('ISABELLA', 2026, 1),
+            TipoAmostra::Agua,
+            new DateTimeImmutable(self::HOJE . ' 23:59:59'),
+            new DateTimeImmutable(self::HOJE . ' 00:00:00'),
+        );
+
+        self::assertSame(self::HOJE, $amostra->dataRecebimento()->format('Y-m-d'));
+    }
+
     private function attemptRejectedTransition(Amostra $amostra, StatusAmostra $destino): void
     {
         try {
@@ -213,6 +264,7 @@ final class AmostraTest extends TestCase
             CodigoAmostra::gerar('ISABELLA', 2026, 1),
             TipoAmostra::Agua,
             new DateTimeImmutable(self::RECEBIMENTO),
+            new DateTimeImmutable(self::HOJE),
             $responsavelTecnico,
         );
     }

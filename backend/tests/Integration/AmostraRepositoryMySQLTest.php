@@ -128,6 +128,7 @@ final class AmostraRepositoryMySQLTest extends TestCase
             CodigoAmostra::gerar('ISABELLA', 2026, $sequencial),
             $tipo,
             new DateTimeImmutable('2026-08-10'),
+            new DateTimeImmutable('2026-08-20'),
             $responsavelTecnico,
         );
     }

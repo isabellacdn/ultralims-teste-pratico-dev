@@ -7,6 +7,7 @@ namespace App\Domain\Entity;
 use App\Domain\Enum\StatusAmostra;
 use App\Domain\Enum\TipoAmostra;
 use App\Domain\Exception\DataConclusaoInvalidaException;
+use App\Domain\Exception\DataRecebimentoInvalidaException;
 use App\Domain\Exception\ResponsavelTecnicoObrigatorioException;
 use App\Domain\Exception\TransicaoInvalidaException;
 use App\Domain\ValueObject\CodigoAmostra;
@@ -29,8 +30,11 @@ final class Amostra
         CodigoAmostra $codigo,
         TipoAmostra $tipo,
         DateTimeImmutable $dataRecebimento,
+        DateTimeImmutable $hoje,
         ?string $responsavelTecnico = null,
     ): self {
+        self::garantirRecebimentoNaoFuturo($dataRecebimento, $hoje);
+
         return new self(
             id: null,
             codigo: $codigo,
@@ -128,6 +132,15 @@ final class Amostra
     public function dataConclusao(): ?DateTimeImmutable
     {
         return $this->dataConclusao;
+    }
+
+    private static function garantirRecebimentoNaoFuturo(
+        DateTimeImmutable $dataRecebimento,
+        DateTimeImmutable $hoje,
+    ): void {
+        if ($dataRecebimento->format('Y-m-d') > $hoje->format('Y-m-d')) {
+            throw DataRecebimentoInvalidaException::noFuturo();
+        }
     }
 
     private function garantirQueNaoEstaFinalizada(): void

@@ -10,6 +10,7 @@ use App\Domain\Entity\Amostra;
 use App\Domain\Exception\CodigoAmostraDuplicadoException;
 use App\Domain\Repository\AmostraRepositoryInterface;
 use App\Domain\ValueObject\CodigoAmostra;
+use DateTimeImmutable;
 
 final readonly class CadastrarAmostra
 {
@@ -24,6 +25,7 @@ final readonly class CadastrarAmostra
     public function executar(CadastrarAmostraInput $entrada): Amostra
     {
         $ano = (int) $entrada->dataRecebimento->format('Y');
+        $hoje = new DateTimeImmutable('today');
 
         for ($tentativa = 1; $tentativa <= self::MAX_TENTATIVAS; $tentativa++) {
             $amostra = Amostra::criar(
@@ -34,6 +36,7 @@ final readonly class CadastrarAmostra
                 ),
                 $entrada->tipo,
                 $entrada->dataRecebimento,
+                $hoje,
                 $entrada->responsavelTecnico,
             );
 
