@@ -15,12 +15,21 @@ type Props = {
   aoFechar: () => void;
 };
 
+function dataDeHoje() {
+  const agora = new Date();
+  const mes = String(agora.getMonth() + 1).padStart(2, "0");
+  const dia = String(agora.getDate()).padStart(2, "0");
+
+  return `${agora.getFullYear()}-${mes}-${dia}`;
+}
+
 export function ModalDeNovaAmostra({ aberto, aoFechar }: Props) {
   const clienteDeConsultas = useQueryClient();
   const dialogo = useRef<HTMLDialogElement>(null);
 
   const [tipo, setTipo] = useState<TipoAmostra | "">("");
   const [dataRecebimento, setDataRecebimento] = useState("");
+  const [dataMaxima, setDataMaxima] = useState("");
   const [responsavelTecnico, setResponsavelTecnico] = useState("");
 
   const cadastro = useMutation({
@@ -44,6 +53,7 @@ export function ModalDeNovaAmostra({ aberto, aoFechar }: Props) {
       setTipo("");
       setDataRecebimento("");
       setResponsavelTecnico("");
+      setDataMaxima(dataDeHoje());
       reiniciarCadastro();
       elemento.showModal();
     }
@@ -112,6 +122,7 @@ export function ModalDeNovaAmostra({ aberto, aoFechar }: Props) {
             <input
               type="date"
               value={dataRecebimento}
+              max={dataMaxima || undefined}
               onChange={(evento) => setDataRecebimento(evento.target.value)}
               required
             />
